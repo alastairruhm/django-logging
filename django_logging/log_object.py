@@ -68,7 +68,7 @@ class LogObject(BaseLogObject):
             headers=dict(self.response.items()),
         )
         try:
-            result['content']=self.response.content.decode()
+            result['content']=self.response.content.decode("utf-8")
         except AttributeError:
             pass
 
