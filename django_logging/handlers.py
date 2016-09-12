@@ -44,7 +44,11 @@ class AppFileHandler(RotatingFileHandler):
             message = ErrorLogObject.format_exception(record.msg)
         else:
             message = record.msg.to_dict
-        data = {record.levelname: {created: message}}
+        data = {
+            "level": record.levelname,
+            "timestamp": created,
+            "content": message
+        }
         send_to_elasticsearch("django-logging-app", created, record.levelname, message)
         return json.dumps(data, sort_keys=True)
 
@@ -76,7 +80,11 @@ class DebugFileHandler(RotatingFileHandler):
             message = ErrorLogObject.format_exception(record.msg)
         else:
             message = record.msg.to_dict
-        data = {record.levelname: {created: message}}
+        data = {
+            "level": record.levelname,
+            "timestamp": created,
+            "content": message
+        }
         return json.dumps(data, sort_keys=True)
 
     def rotation_filename(self, default_name):
@@ -97,8 +105,12 @@ class ConsoleHandler(StreamHandler):
     def format(self, record):
         if isinstance(record.msg, LogObject) or isinstance(record.msg, SqlLogObject):
             created = int(record.created)
-            message = {record.levelname: {created: record.msg.to_dict}}
-
+            # message = {record.levelname: {created: record.msg.to_dict}}
+            message = {
+                "level": record.levelname,
+                "timestamp": created,
+                "content": record.msg.to_dict
+            }
             try:
                 indent = int(settings.INDENT_CONSOLE_LOG)
             except (ValueError, TypeError):
@@ -110,7 +122,11 @@ class ConsoleHandler(StreamHandler):
             return str(record.msg)
         elif isinstance(record.msg, dict):
             created = int(record.created)
-            message = {record.levelname: {created: record.msg}}
+            message = {
+                "level": record.levelname,
+                "timestamp": created,
+                "content": record.msg
+            }
             return json.dumps(message, sort_keys=True, indent=2)
         else:
             return super(ConsoleHandler, self).format(record)
@@ -124,7 +140,11 @@ class SQLFileHandler(RotatingFileHandler):
 
     def format(self, record):
         created = int(record.created)
-        message = {record.levelname: {created: record.msg.to_dict}}
+        message = {
+            "level": record.levelname,
+            "timestamp": created,
+            "content": record.msg.to_dict
+        }
         send_to_elasticsearch("django-logging-sql", created, record.levelname, message)
         return json.dumps(message, sort_keys=True)
 
